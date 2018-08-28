@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 # ------------------------------------------------------------------------
-set -e
+set +e
 
 # custom WSO2 non-root user and group variables
 user=wso2carbon
@@ -46,6 +46,37 @@ test -d ${volumes}/ && cp -r ${volumes}/* ${WSO2_SERVER_HOME}/
 
 # set the Docker container IP as the `localMemberHost` under axis2.xml clustering configurations (effective only when clustering is enabled)
 #sed -i "s#<parameter\ name=\"localMemberHost\".*<\/parameter>#<parameter\ name=\"localMemberHost\">${docker_container_ip}<\/parameter>#" ${WSO2_SERVER_HOME}/repository/conf/axis2/axis2.xml
+
+
+#modify the localhost to domain
+if [ "${WSO2_SERVER_HOST}" != "localhost" ];
+then 
+grep -rlZ localhost ${WSO2_SERVER_HOME} | xargs -r -0 sed -i s@localhost@${WSO2_SERVER_HOST}@g || true
+
+#fix rmi issues
+grep -rlZ rmi://${WSO2_SERVER_HOST} ${WSO2_SERVER_HOME} | xargs -r -0 sed -i s@rmi://${WSO2_SERVER_HOST}@rmi://localhost@g || true
+
+sed -i "s/${WSO2_SERVER_HOST}/localhost/g" ${WSO2_SERVER_HOME}/repository/conf/etc/jmx.xml
+
+#fix ldap issues
+
+sed -i "s/${WSO2_SERVER_HOST}/localhost/g"  ${WSO2_SERVER_HOME}/repository/conf/user-mgt.xml
+
+fi
+
+if [ "${PROXY_PORT}" = "443" ];
+then
+sed -i '/port="9443"/a proxyPort="443"' ${WSO2_SERVER_HOME}/repository/conf/tomcat/catalina-server.xml
+
+sed -i "s/\"proxyHost\" : \"\"/\"proxyHost\" : \"${WSO2_SERVER_HOST}\"/g" ${WSO2_SERVER_HOME}/repository/deployment/server/jaggeryapps/portal/conf/site.json
+
+sed -i "s/\"proxyHTTPSPort\" : \"\"/\"proxyHTTPSPort\"\ :\ \"443\"/g" ${WSO2_SERVER_HOME}/repository/deployment/server/jaggeryapps/portal/conf/site.json
+
+sed -i "s/\"proxyHost\" : \"\"/\"proxyHost\" : \"${WSO2_SERVER_HOST}\"/g" ${WSO2_SERVER_HOME}/repository/deployment/server/jaggeryapps/dashboard/conf/site.json
+
+sed -i "s/\"proxyHTTPSPort\" : \"\"/\"proxyHTTPSPort\"\ :\ \"443\"/g" ${WSO2_SERVER_HOME}/repository/deployment/server/jaggeryapps/dashboard/conf/site.json
+
+fi
 
 # start the WSO2 Carbon server
 sh ${WSO2_SERVER_HOME}/bin/wso2server.sh

@@ -34,14 +34,14 @@ ARG JDK=jdk1.8.0*
 ARG JAVA_HOME=${USER_HOME}/java
 # set wso2 product configurations
 ARG WSO2_SERVER=wso2is
-ARG WSO2_SERVER_VERSION=5.5.0
+ARG WSO2_SERVER_VERSION=5.6.0
 ARG WSO2_SERVER_PACK=${WSO2_SERVER}-${WSO2_SERVER_VERSION}
 ARG WSO2_SERVER_HOME=${USER_HOME}/${WSO2_SERVER}-${WSO2_SERVER_VERSION}
 
 # install required packages
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    curl mc htop iputils-ping && \
+    curl mc vim htop iputils-ping grep sed sudo && \
     rm -rf /var/lib/apt/lists/* && \
     echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     >> /etc/bash.bashrc \
@@ -71,10 +71,11 @@ WORKDIR ${USER_HOME}
 ENV JAVA_HOME=${JAVA_HOME} \
     PATH=$JAVA_HOME/bin:$PATH \
     WSO2_SERVER_HOME=${WSO2_SERVER_HOME} \
-    WORKING_DIRECTORY=${USER_HOME}
+    WORKING_DIRECTORY=${USER_HOME} \
+    WSO2_SERVER_HOST=localhost
 
 # expose ports
-EXPOSE 4000 9763 9443 
+EXPOSE 4000 9763 9443 9999 10389 
 
 ENTRYPOINT ${WORKING_DIRECTORY}/start.sh
 

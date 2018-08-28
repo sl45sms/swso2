@@ -16,16 +16,28 @@ and extract it to `./files`. <br>
 
 ##### 3. Build .
 
-`docker build -t wso2is:5.5.0 .`
+`docker build -t wso2is:5.6.0 .`
     
-##### 4. Modify .
 
-change carbon.xml at your needs
+##### 4. parameters
+
+You can use the enviroment variable 
+
+WSO2_SERVER_HOST
+
+to set the host name
+
+in that case you must change the keystores and mount them as volumes
+
+and the 
+
+PROXY_PORT
+
+if you wont to use reverse proxy
 
 ##### 5. Run
 ```
 docker run \
--p 9444:9444 \
---volume ./carbon.xml:/home/wso2carbon/wso2is-5.5.0/repository/conf/carbon.xml \
-wso2is:5.5.0
+-p 9443:9443 \
+wso2is:5.6.0
 ```
